@@ -1,0 +1,11 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: http-hc-config-be-mgmt
+spec:
+  connectionDraining:
+    drainingTimeoutSec: 60
+  sessionAffinity:
+    affinityCookieTtlSec: 2700
+    affinityType: GENERATED_COOKIE
+  timeoutSec: 120

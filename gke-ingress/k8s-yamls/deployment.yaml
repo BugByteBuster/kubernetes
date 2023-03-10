@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cookie
+spec:
+  replicas: 3  # Change this value as needed
+  selector:
+    matchLabels:
+      app: cookie
+  template:
+    metadata:
+      labels:
+        app: cookie
+    spec:
+      containers:
+        - name: my-flask-app
+          image: gcr.io/vidyadhar-case-testing/cookie:latest
+          ports:
+            - containerPort: 80

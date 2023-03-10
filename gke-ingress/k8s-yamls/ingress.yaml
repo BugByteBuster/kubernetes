@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: lb-dep-perf
+  name: kdp-ingress
+spec:
+  rules:
+  - host: cookie.ca
+    http:
+      paths:
+      - backend:
+          service:
+            name: kdp-hybris-be-mgmt
+            port:
+              number: 80
+        path: /*
+        pathType: ImplementationSpecific

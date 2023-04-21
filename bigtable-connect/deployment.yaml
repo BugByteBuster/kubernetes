@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goapp
+  labels:
+    app: goapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goapp
+  template:
+    metadata:
+      labels:
+        app: goapp
+    spec:
+      serviceAccountName: ksa         #Please use KSA as per your environment.
+      containers:
+      - name: ubuntu
+        image: northamerica-northeast1-docker.pkg.dev/vidyadhar-case-testing/images/go-app       #modify the dockerimage
+        env:
+        - name: GRPC_GO_LOG_VERBOSITY_LEVEL
+          value: "99"
+        - name: GRPC_GO_LOG_SEVERITY_LEVEL
+          value: info

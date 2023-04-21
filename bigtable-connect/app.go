@@ -28,8 +28,8 @@ func sliceContains(list []string, target string) bool {
 }
 
 func main() {
-        project := flag.String("project", "vidyadhar-case-testing", "The Google Cloud Platform project ID. Required.")
-        instance := flag.String("instance", "nodelocal", "The Google Cloud Bigtable instance ID. Required.")
+        project := flag.String("project", "", "The Google Cloud Platform project ID. Required.")
+        instance := flag.String("instance", "", "The Google Cloud Bigtable instance ID. Required.")
         flag.Parse()
         for {
          for _, f := range []string{"project", "instance"} {

@@ -17,7 +17,7 @@ spec:
       serviceAccountName: ksa         #Please use KSA as per your environment.
       containers:
       - name: ubuntu
-        image: northamerica-northeast1-docker.pkg.dev/vidyadhar-case-testing/images/go-app       #modify the dockerimage
+        image: images/go-app       #modify the dockerimage
         env:
         - name: GRPC_GO_LOG_VERBOSITY_LEVEL
           value: "99"

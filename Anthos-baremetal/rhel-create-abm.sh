@@ -148,7 +148,7 @@ printf "🔄 Enabling root SSH access\n"
 # [START anthos_bm_gcp_bash_hybrid_check_ssh]
 for vm in "${VMs[@]}"
 do
-    gcloud compute ssh "$vm" --zone "${ZONE}" --command "sudo sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config && sudo systemctl restart sshd && sudo cat /etc/ssh/sshd_config && sudo systemctl status sshd"
+    gcloud compute ssh "$vm" --zone "${ZONE}" --tunnel-through-iap --command "sudo sed -i 's/PermitRootLogin no/PermitRootLogin yes/' /etc/ssh/sshd_config && sudo systemctl restart sshd && sudo cat /etc/ssh/sshd_config && sudo systemctl status sshd"
 
 done
 
@@ -159,7 +159,7 @@ printf "🔄 Checking SSH access to the GCE VMs...\n"
 # [START anthos_bm_gcp_bash_hybrid_check_ssh]
 for vm in "${VMs[@]}"
 do
-    while ! gcloud compute ssh root@"$vm" --zone "${ZONE}" --command "printf 'SSH to $vm succeeded\n'"
+    while ! gcloud compute ssh root@"$vm" --zone "${ZONE}" --tunnel-through-iap --command "printf 'SSH to $vm succeeded\n'"
     do
         printf "Trying to SSH into %s failed. Sleeping for 5 seconds. zzzZZzzZZ" "$vm"
         sleep  5
@@ -175,7 +175,7 @@ printf "🔄 Setting up VxLAN in the GCE VMs...\n"
 i=2 # We start from 10.200.0.2/24
 for vm in "${VMs[@]}"
 do
-    gcloud compute ssh root@"$vm" --zone "${ZONE}" << EOF
+    gcloud compute ssh root@"$vm" --zone "${ZONE}" --tunnel-through-iap << EOF
         yum install -y jq 
         set -x
         ip link add vxlan0 type vxlan id 42 dev ens4 dstport 0
@@ -198,7 +198,7 @@ printf "✅ Successfully setup VxLAN in the GCE VMs.\n\n"
 # install the necessary tools inside the VMs
 printf "🔄 Setting up admin workstation...\n"
 # [START anthos_bm_gcp_bash_hybrid_init_vm]
-gcloud compute ssh root@$VM_WS --zone "${ZONE}" << EOF
+gcloud compute ssh root@$VM_WS --zone "${ZONE}" --tunnel-through-iap << EOF
 set -x
 
 export PROJECT_ID=\$(gcloud config get-value project)
@@ -246,7 +246,7 @@ printf "✅ Successfully set up admin workstation.\n\n"
 # to all the other (control-plane and worker) VMs
 printf "🔄 Setting up SSH access from admin workstation to cluster node VMs...\n"
 # [START anthos_bm_gcp_bash_hybrid_add_ssh_keys]
-gcloud compute ssh root@$VM_WS --zone "${ZONE}" << EOF
+gcloud compute ssh root@$VM_WS --zone "${ZONE}" --tunnel-through-iap << EOF
 set -x
 ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
 sed 's/ssh-rsa/root:ssh-rsa/' ~/.ssh/id_rsa.pub > ssh-metadata
@@ -261,7 +261,7 @@ printf "✅ Successfully set up SSH access from admin workstation to cluster nod
 # initiate Anthos on bare metal installation from the admin workstation
 printf "🔄 Installing Anthos on bare metal...\n"
 # [START anthos_bm_gcp_bash_hybrid_install_abm]
-gcloud compute ssh root@$VM_WS --zone "${ZONE}" <<EOF
+gcloud compute ssh root@$VM_WS --zone "${ZONE}" --tunnel-through-iap <<EOF
 set -x
 export PROJECT_ID=$(gcloud config get-value project)
 CLUSTER_NAME=\$(curl http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster_id -H "Metadata-Flavor: Google")

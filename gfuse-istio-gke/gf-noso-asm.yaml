@@ -44,7 +44,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gf-nosp-noasm
+  name: gf-nosp-asm
 spec:
   replicas: 1
   selector:

@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gcs-fuse-csi-static-pvc
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  volumeName: gcs-fuse-csi-pv
+  storageClassName: example-storage-class
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gcs-fuse-csi-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 100Gi
+  storageClassName: example-storage-class
+  claimRef:
+    namespace: default
+    name: gcs-fuse-csi-static-pvc
+  mountOptions:
+    - implicit-dirs
+    - uid=1001
+    - gid=3003
+    - debug_fuse
+    - debug_fs
+    - debug_gcs
+    - debug_http
+    - debug_mutex
+  csi:
+    driver: gcsfuse.csi.storage.gke.io
+    volumeHandle: automation-sa-aovm
+    readOnly: false
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gfuse-sp-asm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user
+  template:
+    metadata:
+      labels:
+        app: user
+      annotations:
+        gke-gcsfuse/volumes: "true"
+        gke-gcsfuse/cpu-limit: '0.01'
+        gke-gcsfuse/memory-limit: 50Mi
+    spec:
+      serviceAccountName: gcs-fuse
+      containers:
+        - image: busybox
+          name: busybox
+          command: ["sleep"]
+          args: ["infinity"]
+          volumeMounts:
+          - name: gcs-fuse-csi-static
+            mountPath: "/usr/src/app/public/upload"
+            subPath: tse-vmware-lab-256-config
+      volumes:
+      - name: gcs-fuse-csi-static
+        persistentVolumeClaim:
+          claimName: gcs-fuse-csi-static-pvc

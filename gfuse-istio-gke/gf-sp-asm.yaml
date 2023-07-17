@@ -34,6 +34,7 @@ spec:
     - debug_gcs
     - debug_http
     - debug_mutex
+    - foreground
   csi:
     driver: gcsfuse.csi.storage.gke.io
     volumeHandle: automation-sa-aovm

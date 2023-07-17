@@ -68,7 +68,6 @@ spec:
           volumeMounts:
           - name: gcs-fuse-csi-static
             mountPath: "/usr/src/app/public/upload"
-              #subPath: automation-sa-aovm/vidyadhar-case-testing-cfc886ab82b3.json
       volumes:
       - name: gcs-fuse-csi-static
         persistentVolumeClaim:

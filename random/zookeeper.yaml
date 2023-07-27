@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jarvis-zookeeper
+spec:
+  serviceName: jarvis-zookeeper
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jarvis-zookeeper
+  template:
+    metadata:
+      labels:
+        app: jarvis-zookeeper
+    spec:
+      containers:
+      - env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: ZK_REPLICAS
+          value: "1"
+        - name: ZOO_ENABLE_AUTH
+          value: "yes"
+        - name: ZOO_CLIENT_USER
+          value: test
+        - name: ZOO_CLIENT_PASSWORD
+          value: test
+        - name: ZOOKEEPER_DOMAIN
+          value: .jarvis-zookeeper-headless
+        - name: APM_DOMAIN
+          value: SuperDomain|jarvis
+        - name: APM_SERVICES_GATEWAY_HOST
+          value: apmservices-gateway
+        - name: APM_ZK_SERVER
+          value: zookeeper:2181
+        - name: HOSTNAME
+          value: $(POD_NAME)
+        - name: LOG_LEVEL
+          value: INFO
+        - name: MAX_CLIENT_CONN
+          value: "300"
+        - name: MAX_LOG_DIR_SIZE
+          value: 200MB
+        - name: ZOOKEEPER_PORT
+          value: "2181"
+        image: bitnami/zookeeper
+        name: jarvis-zookeeper
+        ports:
+        - containerPort: 2181
+          protocol: TCP
+        - containerPort: 2888
+          protocol: TCP
+        - containerPort: 3888
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: 4Gi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        volumeMounts:
+        - mountPath: /opt/ca/zookeeper/data
+          name: data-claim
+          subPath: jarvis/zookeeper
+        - mountPath: /opt/ca/zookeeper/logs
+          name: data-logs
+          subPath: jarvis/zookeeper-logs
+      volumes:
+      - name: data-logs
+        persistentVolumeClaim:
+          claimName: oldnfs-pvc
+  volumeClaimTemplates:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: data-claim
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: standard-rwo
+      volumeMode: Filesystem
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: newnfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  volumeName: nfsnew
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oldnfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  volumeName: nfsold
+  storageClassName: ""
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfsold
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  nfs:
+    path: /var/nfs/general
+    server: 10.128.0.23
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfsnew
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 5Gi
+  nfs:
+    path: /var/nfs/general
+    server: 10.128.0.31
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+  storageClassName: ""
